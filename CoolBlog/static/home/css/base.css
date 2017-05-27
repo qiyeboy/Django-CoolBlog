@@ -1,0 +1,196 @@
+﻿/*
+* Deeps V1.0
+* Copyright 2013
+* www.deepswd.com
+* E-mail: xiefeitai@gmail.com*/
+/*! normalize.css v2.1.3 | MIT License | git.io/normalize*/
+article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section,summary{display: block;}
+audio,canvas,video{display: inline-block;}
+audio:not([controls]){display: none;height: 0;}
+[hidden],
+template{display: none;}
+html{font-family: sans-serif;/* 1*/-ms-text-size-adjust: 100%;/* 2*/-webkit-text-size-adjust: 100%;/* 2*/}
+body{margin: 0;background: #fff;-webkit-font-smoothing: antialiased;/* Fix for webkit rendering*/-webkit-text-size-adjust: 100%;}
+a{color:#333;background: transparent;text-decoration: none;outline: 0;}
+a:focus{outline: thin dotted;}
+a:active,
+a:hover{outline: 0;}
+img{max-width: 100%;height: auto;vertical-align: middle;border:0;}
+abbr[title]{border-bottom: 1px dotted;}
+b,
+strong{font-weight: bold;}
+dfn{font-style: italic;}
+hr{-moz-box-sizing: content-box;box-sizing: content-box;height: 0;}
+mark{background: #ff0;color: #000;}
+code,kbd,pre,samp{font-family: monospace, serif;font-size: 1em;}
+pre{white-space: pre-wrap;}
+q{quotes: "\201C" "\201D" "\2018" "\2019";}
+small{font-size: 80%;}
+p{margin: 0 0 15px 0;}
+p img{margin: 0;}
+sub,sup{font-size: 75%;line-height: 0;position: relative;vertical-align: baseline;}
+sup{top: -0.5em;}
+sub{bottom: -0.25em;}
+svg:not(:root){overflow: hidden;}
+figure{margin: 0;}
+fieldset{border: 1px solid #c0c0c0;margin: 0 2px;padding: 0.35em 0.625em 0.75em;}
+legend{border: 0;/* 1*/padding: 0;/* 2*/}
+input[type="text"],input[type="password"],select,textarea{border:1px solid #eee;background: #fff;}
+button,input,select,textarea{font-family: inherit;/* 1*/font-size: 100%;/* 2*/margin: 0;/* 3*/}
+button,input{line-height: normal;}
+button,select{text-transform: none;}
+button,html input[type="button"],input[type="reset"],
+input[type="submit"]{-webkit-appearance: button;/* 2*/cursor: pointer;/* 3*/}
+button[disabled],html input[disabled]{cursor: default;}
+input[type="checkbox"],input[type="radio"]{box-sizing: border-box;/* 1*/padding: 0;/* 2*/}
+input[type="search"]{-webkit-appearance: textfield;/* 1*/-moz-box-sizing: content-box;-webkit-box-sizing: content-box;/* 2*/box-sizing: content-box;}
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration{-webkit-appearance: none;}
+button::-moz-focus-inner,
+input::-moz-focus-inner{border: 0;padding: 0;}
+textarea{overflow: auto;/* 1*/vertical-align: top;/* 2*/}
+table{border-collapse: collapse;border-spacing: 0;}
+/* #Typography
+==================================================*/
+h1, h2, h3, h4, h5, h6{color: #555;font-family: "microsoft yahei", "Times New Roman", serif;font-weight: bold;}
+h1 a, h2 a, h3 a, h4 a, h5 a, h6 a{font-weight: inherit;}
+h1{font-size: 24px;line-height: 30px;margin-bottom: 14px;}
+h2{font-size: 20px;line-height: 28px;margin-bottom: 10px;}
+h3{font-size: 16px;line-height: 26px;margin-bottom: 8px;}
+h4{font-size: 14px;line-height: 22px;margin-bottom: 4px;}
+h5{font-size: 12px;line-height: 20px;}
+h6{font-size: 12px;line-height: 20px;}
+/*Blockquotes*/blockquote, blockquote p{font-size: 14px;line-height: 24px;color: #777;font-style: italic;margin-bottom: 0;}
+blockquote{margin: 0 0 20px;padding: 10px 20px 10px 19px;border-left: 3px solid #ddd;background: #f9f9f9;}
+blockquote cite{display: block;font-size: 12px;color: #555;}
+blockquote cite:before{content: "\2014 \0020";}
+blockquote cite a, blockquote cite a:visited, blockquote cite a:visited{color: #555;}
+/* #Lists
+==================================================*/ul, ol{margin-bottom: 20px;}
+ul{list-style: none outside;margin: 0;padding: 0;}
+ol{list-style: decimal;margin: 0;}
+ol, ul.square, ul.circle, ul.disc{margin-left: 30px;}
+ul.square{list-style: square outside;}
+ul.circle{list-style: circle outside;}
+ul.disc{list-style: disc outside;}
+ul ul, ul ol,ol ol, ol ul{margin: 4px 0 5px 30px;}
+li{line-height: 19px;margin: 0px;}
+li p{line-height: 21px;margin-bottom: 0;}
+/* #Misc
+==================================================*/
+.remove-bottom{margin-bottom: 0 !important;}
+.half-bottom{margin-bottom: 10px !important;}
+.add-bottom{margin-bottom: 20px !important;}
+/*==================================================*/
+.container{position: relative;width: 960px;margin: 0 auto;padding: 0;}
+.container .columns{float: left;*display: inline;margin-left: 10px;margin-right: 10px;}
+.row{margin-bottom: 20px;}
+/* Nested Column Classes*/.alpha{margin-left: 0 !important;}
+.omega{margin-right: 0 !important;}
+/* Base Grid*/.container .col-1{width: 40px;}
+.container .col-2{width: 100px;}
+.container .col-3{width: 160px;}
+.container .col-4{width: 220px;}
+.container .col-5{width: 280px;}
+.container .col-6{width: 340px;}
+.container .col-7{width: 400px;}
+.container .col-8{width: 460px;}
+.container .col-9{width: 520px;}
+.container .col-10{width: 580px;}
+.container .col-11{width: 640px;}
+.container .col-12{width: 700px;}
+.container .col-13{width: 760px;}
+.container .col-14{width: 820px;}
+.container .col-15{width: 880px;}
+.container .col-16{width: 940px;}
+.container .col-1-3{width: 300px;}
+.container .col-2-3{width: 620px;}
+/* #Desktop (Portrait)
+==================================================*//* Note: Design for a width of 1280px*/
+@media screen and (min-width: 1279px){.container{position: relative;width: 1120px;margin: 0 auto;padding: 0;}
+.container .col-1.columns{width: 50px;}
+.container .col-2.columns{width: 120px;}
+.container .col-3.columns{width: 190px;}
+.container .col-4.columns{width: 260px;}
+.container .col-5.columns{width: 330px;}
+.container .col-6.columns{width: 400px;}
+.container .col-7.columns{width: 470px;}
+.container .col-8.columns{width: 540px;}
+.container .col-9.columns{width: 610px;}
+.container .col-10.columns{width: 680px;}
+.container .col-11.columns{width: 750px;}
+.container .col-12.columns{width: 820px;}
+.container .col-13.columns{width: 890px;}
+.container .col-14.columns{width: 960px;}
+.container .col-15.columns{width: 1030px;}
+.container .col-16.columns{width: 1100px;}
+.container .col-1-3.columns{width: 353px;}
+.container .col-2-3.columns{width: 727px;}}
+/* #Tablet (Portrait)
+==================================================*//* Note: Design for a width of 768px*/
+@media only screen and (min-width: 768px) and (max-width: 959px){.container{width: 768px;}
+.container .columns{margin-left: 10px;margin-right: 10px;}
+.columns.alpha{margin-left: 0;margin-right: 10px;}
+.columns.omega{margin-right: 0;margin-left: 10px;}
+.alpha.omega{margin-left: 0;margin-right: 0;}
+.container .col-1.columns{width: 28px;}
+.container .col-2.columns{width: 76px;}
+.container .col-3.columns{width: 124px;}
+.container .col-4.columns{width: 172px;}
+.container .col-5.columns{width: 220px;}
+.container .col-6.columns{width: 268px;}
+.container .col-7.columns{width: 316px;}
+.container .col-8.columns{width: 364px;}
+.container .col-9.columns{width: 412px;}
+.container .col-10.columns{width: 460px;}
+.container .col-11.columns{width: 508px;}
+.container .col-12.columns{width: 556px;}
+.container .col-13.columns{width: 604px;}
+.container .col-14.columns{width: 652px;}
+.container .col-15.columns{width: 700px;}
+.container .col-16.columns{width: 748px;}
+.container .col-1-3.columns{width: 236px;}
+.container .col-2-3.columns{width: 492px;}}
+/* #Mobile (Portrait)
+==================================================*//* Note: Design for a width of 320px*/
+@media only screen and (max-width: 767px){
+.container{width: 96%;min-width:320px;}
+.container .columns{margin: 0;}
+.container .one.column, .container .col-1.columns, .container .col-2.columns, .container .col-3.columns, .container .col-4.columns, .container .col-5.columns, .container .col-6.columns, .container .col-7.columns, .container .col-8.columns, .container .col-9.columns, .container .col-10.columns, .container .col-11.columns, .container .col-12.columns, .container .col-13.columns, .container .col-14.columns, .container .col-15.columns, .container .col-16.columns, .container .col-1-3.columns, .container .col-2-3.columns{width: 100%;}}
+/* #Mobile (Landscape)
+==================================================*//* Note: Design for a width of 480px*/
+@media only screen and (min-width: 480px) and (max-width: 767px){.container{width:96%;}
+.container .columns{margin: 0;}
+.container .col-1.columns, .container .col-2.columns, .container .col-3.columns, .container .col-4.columns, .container .col-5.columns, .container .col-6.columns, .container .col-7.columns, .container .col-8.columns, .container .col-9.columns, .container .col-10.columns, .container .col-11.columns, .container .col-12.columns, .container .col-13.columns, .container .col-14.columns, .container .col-15.columns, .container .col-16.columns, .container .col-1-3.columns, .container .col-2-3.columns{width: 100%;}}
+/* #Clearing
+==================================================*/
+.container:after{content: "\0020";display: block;height: 0;clear: both;visibility: hidden;}
+.clearfix:before, .clearfix:after, .row:before, .row:after{content: "";display: table;}
+.row:after, .clearfix:after{clear: both;}
+.row, .clearfix{*zoom: 1;}
+/* You can also use a <br class="clear" /> to clear columns*/
+.clear{clear: both;display: block;overflow: hidden;visibility: hidden;width: 0;height: 0;line-height: 0;}
+/*------------------------------------*\ 
+\*------------------------------------*/
+::selection{background:#04A4CC;color:#FFF;text-shadow:none;}
+::-webkit-selection{background:#04A4CC;color:#FFF;text-shadow:none;}
+::-moz-selection{background:#04A4CC;color:#FFF;text-shadow:none;}
+/*--------- WORDPRESS CORE------------*\
+\*------------------------------------*/
+.alignnone{margin:5px 0px 5px 0;}
+.aligncenter,
+div.aligncenter{display:block;margin:5px auto 5px auto;}
+.alignright{float:right;margin:5px 0 20px 20px;}
+.alignleft{float:left;margin:5px 20px 20px 0;}
+.aligncenter{display:block;margin:5px auto 5px auto;}
+a img.alignright{float:right;margin:5px 0 20px 20px;}
+a img.alignnone{margin:5px 20px 20px 0;}
+a img.alignleft{float:left;margin:5px 20px 20px 0;}
+a img.aligncenter{display:block;margin-left:auto;margin-right:auto;}
+.wp-caption{background:#FFF;border:1px solid #F0F0F0;max-width:96%;padding:5px 3px 10px;text-align:center;}
+.wp-caption.alignnone{margin:5px 20px 20px 0;}
+.wp-caption.alignleft{margin:5px 20px 20px 0;}
+.wp-caption.alignright{margin:5px 0 20px 20px;}
+.wp-caption img{border:0 none;height:auto;margin:0;max-width:98.5%;padding:0;width:auto;}
+.wp-caption .wp-caption-text,
+.gallery-caption{font-size:11px;line-height:17px;margin:0;padding:0 4px 5px;}

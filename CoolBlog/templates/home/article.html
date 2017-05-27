@@ -1,0 +1,574 @@
+﻿
+
+<html class="no-js">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="keywords" content="" />
+    <meta name="description" content="phithon的小站，长期存在与分享关于网络安全与各种编程的原创文章。" />
+    <title>PHP-CGI远程代码执行漏洞（CVE-2012-1823）分析 | 离别歌</title>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="离别歌" />
+    <link href="css/base.css" rel="stylesheet" type="text/css" />
+    <link href="css/style.css" rel="stylesheet" type="text/css" />
+    <script src="js/jquery-1.9.1.min.js"></script>
+    <script src="js/common_tpl.js" type="text/javascript"></script>
+    <link rel="shortcut icon" href="/static/deep/images/favicon.ico" />
+    
+<style>
+div.row .col-xs-4 {
+  float: left;
+  margin-left: 4px;
+}
+div.row .col-xs-4 img {
+  margin-left: 5px;
+}
+</style>
+<link href="css/jquery.fancybox.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/code.css">
+
+</head>
+<body>
+<!--[if lt IE 8]>
+    <div class="browsehappy" role="dialog">当前网页 <strong>不支持</strong> 你正在使用的浏览器. 为了正常的访问, 请 <a href="http://browsehappy.com/">升级你的浏览器</a>.</div>
+<![endif]-->
+<div id="header">
+    <div class="container">
+        <h1 class="h1-title">
+            <a href="/">
+               <img src="picture/logo.png" alt="离别歌" />
+            </a>
+        </h1>
+        <div id="nav">
+        <input type="checkbox" id="button">
+        <label for="button" onclick>菜单</label>
+        
+        <ul>
+            
+            <li class="item ">
+                <a href="/" >首页</a>
+            </li>
+            
+            <li class="item ">
+                <a href="/list/" >文章</a>
+            </li>
+            
+            <li class="item ">
+                <a href="/other/tinger.html" >关于</a>
+            </li>
+            
+            <li class="item ">
+                <a href="/other/friends-link.html" >友链</a>
+            </li>
+            
+            <li class="item ">
+                <a href="https://github.com/phith0n" target="_blank" >项目</a>
+            </li>
+            
+            <li class="item ">
+                <a href="https://www.leavesongs.com/PENETRATION/code-auditor-secret-group.html" >代码审计</a>
+            </li>
+            
+        </ul>
+        
+        </div>
+    </div>
+</div>
+
+<div class="banner-bar">
+    <div class="container">
+        <div class="col-12 columns">
+            <div class="place">
+                <a href="/">首页</a>
+                &raquo;
+                
+                网络安全 &raquo; <a href="/PENETRATION/php-cgi-cve-2012-1823.html">PHP-CGI远程代码执行漏洞（CVE-2012-1823）分析</a>
+                
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container">
+    <div class="col-11 columns" id="mainbody" role="main">
+        <div class="post-single type-post">
+            <h1 class="article-h1">PHP-CGI远程代码执行漏洞（CVE-2012-1823）分析</h1>
+            <div class="details-up">
+  <span class="author">作者: phithon</span>
+  
+  <span class="category">分类: <a href="/sort/PENETRATION">网络安全</a></span>
+  
+  <span class="date">时间: 2017-5-7 0:27</span>
+  <span class="comments-top" itemprop="interactionCount">评论：<a itemprop="discussionUrl" href="/PENETRATION/php-cgi-cve-2012-1823.html#reply-list">0条评论</a></span>
+  <span class="comments-top" itemprop="interactionCount">浏览：<a itemprop="discussionUrl" href="/PENETRATION/php-cgi-cve-2012-1823.html">928人看过</a></span>
+  
+  <span class="date">标签:
+    
+        <a href="/tag/php-cgi">php-cgi</a>
+    
+        <a href="/tag/%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E">代码执行漏洞</a>
+    
+  </span>
+  
+</div>
+            <div class="entry">
+                <p>CVE-2012-1823出来时据说是“PHP远程代码执行漏洞”，曾经也“轰动一时”，当时的我只是刚踏入安全门的一个小菜，直到前段时间tomato师傅让我看一个案例，我才想起来这个漏洞。通过在<a href="https://github.com/phith0n/vulhub/tree/master/php/CVE-2012-1823">Vulhub</a>中对这个漏洞环境的搭建与漏洞原理的分析，我觉得还挺有意思的，故写出一篇文章来，和大家分享。</p>
+<h2 id="php-sapi"><a class="toclink" href="#php-sapi">PHP SAPI 与运行模式</a></h2>
+<p>首先，介绍一下PHP的运行模式。</p>
+<p>下载PHP源码，可以看到其中有个目录叫sapi。sapi在PHP中的作用，类似于一个消息的“传递者”，比如我在《<a href="https://www.leavesongs.com/PENETRATION/fastcgi-and-php-fpm.html">Fastcgi协议分析 &amp;&amp; PHP-FPM未授权访问漏洞 &amp;&amp; Exp编写</a>》一文中介绍的fpm，他的作用就是接受Web容器通过fastcgi协议封装好的数据，并交给PHP解释器执行。</p>
+<p>除了fpm，最常见的sapi应该是用于Apache的mod_php，这个sapi用于php和apache之间的数据交换。</p>
+<p>php-cgi也是一个sapi。在远古的时候，web应用的运行方式很简单，web容器接收到http数据包后，拿到用户请求的文件（cgi脚本），并fork出一个子进程（解释器）去执行这个文件，然后拿到执行结果，直接返回给用户，同时这个解释器子进程也就结束了。基于bash、perl等语言的web应用多半都是以这种方式来执行，这种执行方式一般就被称为cgi，在安装Apache的时候默认有一个cgi-bin目录，最早就是放置这些cgi脚本用的。</p>
+<p>但cgi模式有个致命的缺点，众所周知，进程的创建和调度都是有一定消耗的，而且进程的数量也不是无限的。所以，基于cgi模式运行的网站通常不能同时接受大量请求，否则每个请求生成一个子进程，就有可能把服务器挤爆。于是后来就有了fastcgi，fastcgi进程可以将自己一直运行在后台，并通过fastcgi协议接受数据包，执行后返回结果，但自身并不退出。</p>
+<p>php有一个叫php-cgi的sapi，php-cgi有两个功能，一是提供cgi方式的交互，二是提供fastcgi方式的交互。也就说，我们可以像perl一样，让web容器直接fork一个php-cgi进程执行某脚本；也可以在后台运行<code>php-cgi -b 127.0.0.1:9000</code>（php-cgi作为fastcgi的管理器），并让web容器用fastcgi协议和9000交互。</p>
+<p>那我之前说的fpm又是什么呢？为什么php有两个fastcgi管理器？php确实有两个fastcgi管理器，php-cgi可以以fastcgi模式运行，fpm也是以fastcgi模式运行。但fpm是php在5.3版本以后引入的，是一个更高效的fastcgi管理器，其诸多优点我就不多说了，可以自己去翻翻源码。因为fpm优点更多，所以现在越来越多的web应用使用php-fpm去运行php。</p>
+<h2 id="_1"><a class="toclink" href="#_1">历史成因</a></h2>
+<p>回到本漏洞。CVE-2012-1823就是php-cgi这个sapi出现的漏洞，我上面介绍了php-cgi提供的两种运行方式：cgi和fastcgi，本漏洞只出现在以cgi模式运行的php中。</p>
+<p>这个漏洞简单来说，就是用户请求的querystring被作为了php-cgi的参数，最终导致了一系列结果。</p>
+<p>探究一下原理，<a href="http://www.ietf.org/rfc/rfc3875">RFC3875</a>中规定，当querystring中不包含没有解码的<code>=</code>号的情况下，要将querystring作为cgi的参数传入。所以，Apache服务器按要求实现了这个功能。</p>
+<p>但PHP并没有注意到RFC的这一个规则，也许是曾经注意并处理了，处理方法就是web上下文中不允许传入参数。但在2004年的时候某个开发者发表过这么一段言论：</p>
+<div class="codehilite"><pre><span></span><span class="n">From</span><span class="o">:</span> <span class="n">Rasmus</span> <span class="n">Lerdorf</span> <span class="o">&lt;</span><span class="n">rasmus</span> <span class="o">&lt;</span><span class="n">at</span><span class="o">&gt;</span> <span class="n">lerdorf</span><span class="o">.</span><span class="na">com</span><span class="o">&gt;</span>
+<span class="n">Subject</span><span class="o">:</span> <span class="o">[</span><span class="n">PHP</span><span class="o">-</span><span class="n">DEV</span><span class="o">]</span> <span class="n">php</span><span class="o">-</span><span class="n">cgi</span> <span class="n">command</span> <span class="n">line</span> <span class="k">switch</span> <span class="n">memory</span> <span class="n">check</span>
+<span class="n">Newsgroups</span><span class="o">:</span> <span class="n">gmane</span><span class="o">.</span><span class="na">comp</span><span class="o">.</span><span class="na">php</span><span class="o">.</span><span class="na">devel</span>
+<span class="n">Date</span><span class="o">:</span> <span class="mi">2004</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">04</span> <span class="mi">23</span><span class="o">:</span><span class="mi">26</span><span class="o">:</span><span class="mi">41</span> <span class="n">GMT</span> <span class="o">(</span><span class="mi">7</span> <span class="n">years</span><span class="o">,</span> <span class="mi">49</span> <span class="n">weeks</span><span class="o">,</span> <span class="mi">3</span> <span class="n">days</span><span class="o">,</span> <span class="mi">20</span> <span class="n">hours</span> <span class="n">and</span> <span class="mi">39</span> <span class="n">minutes</span> <span class="n">ago</span><span class="o">)</span>
+
+<span class="n">In</span> <span class="n">our</span> <span class="n">SAPI</span> <span class="n">cgi</span> <span class="n">we</span> <span class="n">have</span> <span class="n">a</span> <span class="n">check</span> <span class="n">along</span> <span class="n">these</span> <span class="n">lines</span><span class="o">:</span>
+
+    <span class="k">if</span> <span class="o">(</span><span class="n">getenv</span><span class="o">(</span><span class="s2">&quot;SERVER_SOFTWARE&quot;</span><span class="o">)</span>
+        <span class="o">||</span> <span class="n">getenv</span><span class="o">(</span><span class="s2">&quot;SERVER_NAME&quot;</span><span class="o">)</span>
+        <span class="o">||</span> <span class="n">getenv</span><span class="o">(</span><span class="s2">&quot;GATEWAY_INTERFACE&quot;</span><span class="o">)</span>
+        <span class="o">||</span> <span class="n">getenv</span><span class="o">(</span><span class="s2">&quot;REQUEST_METHOD&quot;</span><span class="o">))</span> <span class="o">{</span>
+        <span class="n">cgi</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="k">if</span><span class="o">(!</span><span class="n">cgi</span><span class="o">)</span> <span class="n">getopt</span><span class="o">(...)</span>
+
+<span class="n">As</span> <span class="k">in</span><span class="o">,</span> <span class="n">we</span> <span class="k">do</span> <span class="n">not</span> <span class="n">parse</span> <span class="n">command</span> <span class="n">line</span> <span class="n">args</span> <span class="k">for</span> <span class="n">the</span> <span class="n">cgi</span> <span class="n">binary</span> <span class="k">if</span> <span class="n">we</span> <span class="n">are</span> 
+<span class="n">running</span> <span class="k">in</span> <span class="n">a</span> <span class="n">web</span> <span class="n">context</span><span class="o">.</span>  <span class="n">At</span> <span class="n">the</span> <span class="n">same</span> <span class="n">time</span> <span class="n">our</span> <span class="n">regression</span> <span class="n">testing</span> <span class="n">system</span> 
+<span class="n">tries</span> <span class="n">to</span> <span class="n">use</span> <span class="n">the</span> <span class="n">cgi</span> <span class="n">binary</span> <span class="n">and</span> <span class="n">it</span> <span class="n">sets</span> <span class="n">these</span> <span class="n">variables</span> <span class="k">in</span> <span class="n">order</span> <span class="n">to</span> 
+<span class="n">properly</span> <span class="n">test</span> <span class="n">GET</span><span class="o">/</span><span class="n">POST</span> <span class="n">requests</span><span class="o">.</span>  <span class="n">From</span> <span class="n">the</span> <span class="n">regression</span> <span class="n">testing</span> <span class="n">system</span> <span class="n">we</span> 
+<span class="n">use</span> <span class="o">-</span><span class="n">d</span> <span class="n">extensively</span> <span class="n">to</span> <span class="kd">override</span> <span class="n">ini</span> <span class="n">settings</span> <span class="n">to</span> <span class="n">make</span> <span class="n">sure</span> <span class="n">our</span> <span class="n">test</span> 
+<span class="n">environment</span> <span class="k">is</span> <span class="n">sane</span><span class="o">.</span>  <span class="n">Of</span> <span class="n">course</span> <span class="n">these</span> <span class="n">two</span> <span class="n">ideas</span> <span class="n">conflict</span><span class="o">,</span> <span class="n">so</span> <span class="n">currently</span> <span class="n">our</span> 
+<span class="n">regression</span> <span class="n">testing</span> <span class="k">is</span> <span class="n">somewhat</span> <span class="n">broken</span><span class="o">.</span>  <span class="n">We</span> <span class="n">haven</span><span class="s1">&#39;t noticed because we </span>
+<span class="s1">don&#39;</span><span class="n">t</span> <span class="n">have</span> <span class="n">many</span> <span class="n">tests</span> <span class="n">that</span> <span class="n">have</span> <span class="n">GET</span><span class="o">/</span><span class="n">POST</span> <span class="n">data</span> <span class="n">and</span> <span class="n">we</span> <span class="n">rarely</span> <span class="n">build</span> <span class="n">the</span> <span class="n">cgi</span> 
+<span class="n">binary</span><span class="o">.</span>
+
+<span class="n">The</span> <span class="n">point</span> <span class="n">of</span> <span class="n">the</span> <span class="n">question</span> <span class="n">here</span> <span class="k">is</span> <span class="k">if</span> <span class="n">anybody</span> <span class="n">remembers</span> <span class="n">why</span> <span class="n">we</span> <span class="n">decided</span> <span class="n">not</span> 
+<span class="n">to</span> <span class="n">parse</span> <span class="n">command</span> <span class="n">line</span> <span class="n">args</span> <span class="k">for</span> <span class="n">the</span> <span class="n">cgi</span> <span class="n">version</span><span class="o">?</span>  <span class="n">I</span> <span class="n">could</span> <span class="n">easily</span> <span class="n">see</span> <span class="n">it</span> 
+<span class="n">being</span> <span class="n">useful</span> <span class="n">to</span> <span class="n">be</span> <span class="n">able</span> <span class="n">to</span> <span class="n">write</span> <span class="n">a</span> <span class="n">cgi</span> <span class="n">script</span> <span class="n">like</span><span class="o">:</span>
+
+  <span class="err">#</span><span class="o">!/</span><span class="n">usr</span><span class="sr">/local/bin/php-cgi -d include_path=/</span><span class="n">path</span>
+  <span class="o">&lt;?</span><span class="n">php</span>
+      <span class="o">...</span>
+  <span class="o">?&gt;</span>
+
+<span class="n">and</span> <span class="n">have</span> <span class="n">it</span> <span class="n">work</span> <span class="n">both</span> <span class="n">from</span> <span class="n">the</span> <span class="n">command</span> <span class="n">line</span> <span class="n">and</span> <span class="n">from</span> <span class="n">a</span> <span class="n">web</span> <span class="n">context</span><span class="o">.</span>
+
+<span class="n">As</span> <span class="n">far</span> <span class="k">as</span> <span class="n">I</span> <span class="n">can</span> <span class="n">tell</span> <span class="k">this</span> <span class="n">wouldn</span><span class="err">&#39;</span><span class="n">t</span> <span class="n">conflict</span> <span class="k">with</span> <span class="n">anything</span><span class="o">,</span> <span class="n">but</span> <span class="n">somebody</span> <span class="n">at</span> 
+<span class="n">some</span> <span class="n">point</span> <span class="n">must</span> <span class="n">have</span> <span class="n">had</span> <span class="n">a</span> <span class="n">reason</span> <span class="k">for</span> <span class="n">disallowing</span> <span class="k">this</span><span class="o">.</span>
+
+<span class="o">-</span><span class="n">Rasmus</span>
+</pre></div>
+
+
+<p>显然，这位开发者是为了方便使用类似<code>#!/usr/local/bin/php-cgi -d include_path=/path</code>的写法来进行测试，认为不应该限制php-cgi接受命令行参数，而且这个功能不和其他代码有任何冲突。</p>
+<p>于是，<code>if(!cgi) getopt(...)</code>被删掉了。</p>
+<p>但显然，根据RFC中对于command line的说明，命令行参数不光可以通过<code>#!/usr/local/bin/php-cgi -d include_path=/path</code>的方式传入php-cgi，更可以通过querystring的方式传入。</p>
+<p>这就是本漏洞的历史成因。</p>
+<h2 id="_2"><a class="toclink" href="#_2">漏洞利用</a></h2>
+<p>那么，可控命令行参数，能做些什么事。</p>
+<p>通过阅读源码，我发现cgi模式下有如下一些参数可用：</p>
+<ul>
+<li><code>-c</code> 指定php.ini文件的位置</li>
+<li><code>-n</code> 不要加载php.ini文件</li>
+<li><code>-d</code> 指定配置项</li>
+<li><code>-b</code> 启动fastcgi进程</li>
+<li><code>-s</code> 显示文件源码</li>
+<li><code>-T</code> 执行指定次该文件</li>
+<li><code>-h</code>和<code>-?</code> 显示帮助</li>
+</ul>
+<p>最简单的利用方式，当然就是<code>-s</code>，可以直接显示源码：</p>
+<p><a href="/media/attachment/2017/05/07/02c8a5c7-1573-49e7-bd87-e89028d33d01.png"><img alt="1.png" src="picture/02c8a5c7-1573-49e7-bd87-e89028d33d01.8384d861581c.png" /></a></p>
+<p>但阅读过我写的fastcgi那篇文章的同学应该很快就想到了一个更好的利用方法：通过使用<code>-d</code>指定<code>auto_prepend_file</code>来制造任意文件包含漏洞，执行任意代码：</p>
+<p><a href="/media/attachment/2017/05/07/a8cfe833-9e2f-4ed7-9825-a0217c890d04.png"><img alt="2.png" src="picture/a8cfe833-9e2f-4ed7-9825-a0217c890d04.a945b321388e.png" /></a></p>
+<p>注意，空格用<code>+</code>或<code>%20</code>代替，<code>=</code>用url编码代替。</p>
+<h2 id="cve-2012-2311"><a class="toclink" href="#cve-2012-2311">CVE-2012-2311</a></h2>
+<p>这个漏洞被爆出来以后，PHP官方对其进行了修补，发布了新版本5.4.2及5.3.12，但这个修复是不完全的，可以被绕过，进而衍生出CVE-2012-2311漏洞。</p>
+<p>PHP的修复方法是对<code>-</code>进行了检查：</p>
+<div class="codehilite"><pre><span></span><span class="k">if</span><span class="p">(</span><span class="n">query_string</span> <span class="o">=</span> <span class="n">getenv</span><span class="p">(</span><span class="s">&quot;QUERY_STRING&quot;</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">decoded_query_string</span> <span class="o">=</span> <span class="n">strdup</span><span class="p">(</span><span class="n">query_string</span><span class="p">);</span>
+    <span class="n">php_url_decode</span><span class="p">(</span><span class="n">decoded_query_string</span><span class="p">,</span> <span class="n">strlen</span><span class="p">(</span><span class="n">decoded_query_string</span><span class="p">));</span>
+    <span class="k">if</span><span class="p">(</span><span class="o">*</span><span class="n">decoded_query_string</span> <span class="o">==</span> <span class="sc">&#39;-&#39;</span> <span class="o">&amp;&amp;</span> <span class="n">strchr</span><span class="p">(</span><span class="n">decoded_query_string</span><span class="p">,</span> <span class="sc">&#39;=&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">skip_getopt</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="n">free</span><span class="p">(</span><span class="n">decoded_query_string</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>可见，获取querystring后进行解码，如果第一个字符是<code>-</code>则设置skip_getopt，也就是不要获取命令行参数。</p>
+<p>这个修复方法不安全的地方在于，如果运维对php-cgi进行了一层封装的情况下：</p>
+<div class="codehilite"><pre><span></span><span class="ch">#!/bin/sh</span>
+
+<span class="nb">exec</span> /usr/local/bin/php-cgi <span class="nv">$*</span>
+</pre></div>
+
+
+<p>通过使用空白符加<code>-</code>的方式，也能传入参数。这时候querystring的第一个字符就是空白符而不是<code>-</code>了，绕过了上述检查。</p>
+<p>于是，php5.4.3和php5.3.13中继续进行修改:</p>
+<div class="codehilite"><pre><span></span><span class="k">if</span><span class="p">((</span><span class="n">query_string</span> <span class="o">=</span> <span class="n">getenv</span><span class="p">(</span><span class="s">&quot;QUERY_STRING&quot;</span><span class="p">))</span> <span class="o">!=</span> <span class="nb">NULL</span> <span class="o">&amp;&amp;</span> <span class="n">strchr</span><span class="p">(</span><span class="n">query_string</span><span class="p">,</span> <span class="sc">&#39;=&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+    <span class="cm">/* we&#39;ve got query string that has no = - apache CGI will pass it to command line */</span>
+    <span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span>
+    <span class="n">decoded_query_string</span> <span class="o">=</span> <span class="n">strdup</span><span class="p">(</span><span class="n">query_string</span><span class="p">);</span>
+    <span class="n">php_url_decode</span><span class="p">(</span><span class="n">decoded_query_string</span><span class="p">,</span> <span class="n">strlen</span><span class="p">(</span><span class="n">decoded_query_string</span><span class="p">));</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">p</span> <span class="o">=</span> <span class="n">decoded_query_string</span><span class="p">;</span> <span class="o">*</span><span class="n">p</span> <span class="o">&amp;&amp;</span>  <span class="o">*</span><span class="n">p</span> <span class="o">&lt;=</span> <span class="sc">&#39; &#39;</span><span class="p">;</span> <span class="n">p</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+        <span class="cm">/* skip all leading spaces */</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="o">*</span><span class="n">p</span> <span class="o">==</span> <span class="sc">&#39;-&#39;</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">skip_getopt</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="n">free</span><span class="p">(</span><span class="n">decoded_query_string</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>先跳过所有空白符（小于等于空格的所有字符），再判断第一个字符是否是<code>-</code>。</p>
+<h2 id="_3"><a class="toclink" href="#_3">影响</a></h2>
+<p>这个漏洞在当年的影响应该说中等。因为PHP-CGI这个SAPI在漏洞出现的时间点，因为其性能等问题，已经在慢慢退出历史舞台了。但考虑到PHP这个在Web领域举足轻重的语言，跨越多年，用量巨大，很多老的设备、服务器仍在运行有漏洞的版本和PHP-CGI，所以影响也不能低估。</p>
+<p>不过，在2017年的今天，我分析这个漏洞当然已经不能谈影响了，只是其思路确实比较有意思，又让我领会了一次阅读RFC的重要性。</p>
+            </div>
+            <div itemprop="keywords" class="tags-meta">
+                标签:
+                
+                    <a href="/tag/php-cgi">php-cgi</a>
+                
+                    <a href="/tag/%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E">代码执行漏洞</a>
+                
+            </div>
+            <br>
+<!--MOB SHARE BEGIN-->
+<div class="-mob-share-ui-button -mob-share-open">分享</div>
+<div class="-mob-share-ui" style="display: none">
+    <ul class="-mob-share-list">
+        <li class="-mob-share-weibo"><p>新浪微博</p></li>
+        <li class="-mob-share-qzone"><p>QQ空间</p></li>
+        <li class="-mob-share-qq"><p>QQ好友</p></li>
+        <li class="-mob-share-weixin"><p>微信</p></li>
+        <li class="-mob-share-douban"><p>豆瓣</p></li>
+        <li class="-mob-share-facebook"><p>Facebook</p></li>
+        <li class="-mob-share-twitter"><p>Twitter</p></li>
+        <li class="-mob-share-pocket"><p>Pocket</p></li>
+        <li class="-mob-share-google"><p>Google+</p></li>
+        <li class="-mob-share-youdao"><p>有道云笔记</p></li>
+        <li class="-mob-share-mingdao"><p>明道</p></li>
+        <li class="-mob-share-tumblr"><p>Tumblr</p></li>
+        <li class="-mob-share-instapaper"><p>Instapaper</p></li>
+        <li class="-mob-share-linkedin"><p>LinkedIn</p></li>
+    </ul>
+    <div class="-mob-share-close">取消</div>
+</div>
+<div class="-mob-share-ui-bg"></div>
+<script id="-mob-share" src="js/mob-share.js"></script>
+<!--MOB SHARE END-->
+
+        <div class="qqlist">
+          <h3>订阅本站<small>(RSS)</small></h3>
+          <form method="post" target="_blank" action="https://list.qq.com/cgi-bin/qf_compose_send">
+          <input type="hidden" value="qf_booked_feedback" name="t" />
+          <input type="hidden" value="dace5c2b356504de449e7f3fc2bb59f3f6124d6563786446" name="id" />
+          <input type="text" placeholder="E-mail" value="" class="rsstxt" name="to" id="to" />
+          <button type="submit" >订阅&rarr;</button>
+          </form>
+        </div>
+
+
+        </div>
+        <!-- 评论位置 -->
+        <div id="comments" class="comments">
+          <h3>已有 0 条评论</h3>
+            <ol class="comment-list">
+            
+            
+            
+            </ol>
+            
+        </div>
+
+        <div id="reply"></div>
+        <div id="comment-place">
+            <div id="comment-post" class="respond none-resize">
+             <div id="respond">
+                <h3 id="response">添加新评论</h3>
+                <form method="post" id="comment-form" role="form" action="#comments">
+                    <p>
+                        <label for="author" class="required">称呼</label>
+                        <input id="id_nickname" maxlength="64" name="nickname" placeholder="昵称" type="text" required />
+                    </p>
+                    <p>
+                        <label for="mail">Email</label>
+                        <input id="id_email" maxlength="254" name="email" placeholder="邮箱（可留空）" type="text" />
+                    </p>
+                    <p>
+                        <label for="url">网站</label>
+                        <input id="id_url" maxlength="200" name="url" placeholder="链接（可留空）" type="text" />
+                    </p>
+                    <p>
+                        <label for="textarea" class="required">内容</label>
+                        <textarea cols="40" id="id_content" name="content" rows="6" required>
+</textarea>
+                    </p>
+                    <p>
+                        <label style="float:left;">验证码</label>
+                        <div class="row" style="margin-top: 8px"><div class="col-xs-4"><input autocomplete="off" id="id_captcha_1" name="captcha_1" type="text" placeholder="验证码" /> <input id="id_captcha_0" name="captcha_0" type="hidden" value="1ba70463fde1c04b4b1de827cf03c34fe5e889c5" />
+</div><div class="col-xs-4">
+<img src="picture/acf89a790f7a454d9b804fe44e8a4544.gif" alt="captcha" class="captcha" height="25" /></div></div>
+                    </p>
+                    <p>
+                        <button type="submit" class="submit">提交评论</button>
+                        <input id="id_parent" name="parent" type="hidden" />
+                        <input id="id_archive" name="archive" type="hidden" value="417" />
+                        <input type='hidden' name='csrfmiddlewaretoken' value='wqwUZsPxr0T5IF7fWdzuPu9B8KSqljwmGtjWEa6E4M5SP6oDPOiMbtxLfpDCrwPn' />
+                    </p>
+                </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    
+
+
+
+<div  class="col-5 columns" id="sidebar" role="complementary">
+
+  <div class="widget widget_search">
+    <h3>搜索</h3>
+    <form action="/search/" id="searchform" method="get">
+        <input type="text" id="searchkey" name="keyword" value="" class="searchkey" placeholder="Search..."/>
+        <button type="submit"  id="searchsubmit">Go</button>
+    </form>
+  </div>
+
+  
+  <div class="widget">
+	<h3 class="widget-title">最新评论</h3>
+	<ul class="widget-list" id="recent-comment">
+    
+    
+        <li id="comment" class="clearfix">
+            <img class="avatar" src="picture/d41d8cd98f00b204e9800998ecf8427e.jpg" alt="%s" width="40" height="40">
+            <div class="comments-link"><cite>lucien</cite>：<a href="/other/friends-link.html#comment-2698">换个友链啦。
+
+名称：Lucien Blog
+
+URL:http://www.luci...</a></div>
+        </li>
+    
+        <li id="comment" class="clearfix">
+            <img class="avatar" src="picture/c4267eb6d17276fa31c547ac71611e90.jpg" alt="%s" width="40" height="40">
+            <div class="comments-link"><cite>phithon</cite>：<a href="/other/friends-link.html#comment-2699">@lucien 暂不满足要求哈</a></div>
+        </li>
+    
+        <li id="comment" class="clearfix">
+            <img class="avatar" src="picture/d41d8cd98f00b204e9800998ecf8427e.jpg" alt="%s" width="40" height="40">
+            <div class="comments-link"><cite>zerokeeper</cite>：<a href="/other/friends-link.html#comment-2696">p师傅，不知是否可以换个友链？
+地址：http://www.zerokeeper.com/</a></div>
+        </li>
+    
+        <li id="comment" class="clearfix">
+            <img class="avatar" src="picture/c4267eb6d17276fa31c547ac71611e90.jpg" alt="%s" width="40" height="40">
+            <div class="comments-link"><cite>phithon</cite>：<a href="/other/friends-link.html#comment-2697">@zerokeeper 可以</a></div>
+        </li>
+    
+        <li id="comment" class="clearfix">
+            <img class="avatar" src="picture/d41d8cd98f00b204e9800998ecf8427e.jpg" alt="%s" width="40" height="40">
+            <div class="comments-link"><cite>闷声发大财</cite>：<a href="/PENETRATION/fastcgi-and-php-fpm.html#comment-2695">可以很清真</a></div>
+        </li>
+    
+    </ul>
+  </div>
+
+  <div class="widget widget-category">
+	<h3>分类</h3>
+	<ul id="blogsort" class="widget-list">
+    
+    
+    <li>
+        <a href="/sort/PENETRATION">网络安全<em>92</em></a>
+    </li>
+    
+    <li>
+        <a href="/sort/C">C/C++<em>32</em></a>
+    </li>
+    
+    <li>
+        <a href="/sort/PYTHON">Python<em>18</em></a>
+    </li>
+    
+    <li>
+        <a href="/sort/SHARE">资源分享<em>15</em></a>
+    </li>
+    
+    <li>
+        <a href="/sort/HTML">web前端<em>13</em></a>
+    </li>
+    
+    </ul>
+  </div>
+
+  <div class="widget widget-tag">
+	<h3>随机标签</h3>
+	<div class="tag-cloud">
+        
+        
+        <a rel="tag" href="/tag/C-FREE">C-FREE</a>
+        
+        <a rel="tag" href="/tag/MFC">MFC</a>
+        
+        <a rel="tag" href="/tag/ActiveX">ActiveX</a>
+        
+        <a rel="tag" href="/tag/backtrack">backtrack</a>
+        
+        <a rel="tag" href="/tag/lnmp">lnmp</a>
+        
+        <a rel="tag" href="/tag/struts">struts</a>
+        
+        <a rel="tag" href="/tag/%E9%87%8D%E5%AE%9A%E5%90%91">重定向</a>
+        
+        <a rel="tag" href="/tag/php7">php7</a>
+        
+        <a rel="tag" href="/tag/%E4%BD%8D%E8%BF%90%E7%AE%97">位运算</a>
+        
+        <a rel="tag" href="/tag/%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%88%A0%E9%99%A4">任意文件删除</a>
+        
+        <a rel="tag" href="/tag/itoa">itoa</a>
+        
+        <a rel="tag" href="/tag/%E9%98%BB%E6%AD%A2%E8%84%9A%E6%9C%AC%E8%BF%90%E8%A1%8C">阻止脚本运行</a>
+        
+        <a rel="tag" href="/tag/%E6%A1%A5%E6%8E%A5">桥接</a>
+        
+        <a rel="tag" href="/tag/tornado">tornado</a>
+        
+        <a rel="tag" href="/tag/%E5%B9%B3%E8%A1%A1%E6%9D%83%E9%99%90">平衡权限</a>
+        
+        <a rel="tag" href="/tag/Ubuntu">Ubuntu</a>
+        
+        <a rel="tag" href="/tag/%E5%BA%93%E5%87%BD%E6%95%B0">库函数</a>
+        
+        <a rel="tag" href="/tag/ctf">ctf</a>
+        
+        <a rel="tag" href="/tag/%E5%AF%92%E5%81%87">寒假</a>
+        
+        <a rel="tag" href="/tag/%E6%89%BE%E5%9B%9E%E5%AF%86%E7%A0%81">找回密码</a>
+        
+        <a rel="tag" href="/tag/%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E">上传漏洞</a>
+        
+        <a rel="tag" href="/tag/%E5%9B%9E%E8%B0%83%E5%90%8E%E9%97%A8">回调后门</a>
+        
+        <a rel="tag" href="/tag/%E6%B5%8B%E8%AF%95">测试</a>
+        
+        <a rel="tag" href="/tag/_countof">_countof</a>
+        
+        <a rel="tag" href="/tag/%E6%8F%90%E6%9D%83%E6%BC%8F%E6%B4%9E">提权漏洞</a>
+        
+        <a rel="tag" href="/tag/sqlite">sqlite</a>
+        
+        <a rel="tag" href="/tag/brainfuck">brainfuck</a>
+        
+        <a rel="tag" href="/tag/%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86">反向代理</a>
+        
+        <a rel="tag" href="/tag/rss">rss</a>
+        
+        <a rel="tag" href="/tag/%E5%AD%A6%E4%B9%A0">学习</a>
+        
+    </div>
+  </div>
+
+  <div class="widget widget-recent-entries">
+	<h3 class="widget-title">热门日志</h3>
+	<ul id="hotlog" class="widget-list">
+    
+    
+        <li><a href="/PHP/phpdelfile.html">php遍历目录&amp;删除指定文件中指定内容</a></li>
+    
+        <li><a href="/THINK/banjia.html">博客搬家成功</a></li>
+    
+        <li><a href="/PENETRATION/vps-pentest.html">对自己VPS的一次安全检测</a></li>
+    
+        <li><a href="/C/CGIforC_1.html">C语言CGI编程入门(一)</a></li>
+    
+        <li><a href="/C/gh0st_2.html">gh0st源码分析与远控的编写(二)</a></li>
+    
+    </ul>
+  </div>
+  
+
+</div>
+</div>
+
+<div id="footer">
+	<!-- copyright -->
+	<div class="container">
+		<div class="row remove-bottom">
+			<div class="col-6 columns">
+			<h3>Little About</h3>
+			<p>Phithon 非强迫症小青年  <br>
+现居先 <br>
+爱好：种花、买书、收藏明信片 <br>
+欢迎各大组织收留 <br>
+E-mail：root@leavesongs.com </p>
+			</div>
+
+			<div class="col-10 columns">
+
+				<h3 class="mobile-hide">Follow me</h3>
+        <div id="social-links">
+          <a href="http://weibo.com/101yx" class="sweibo" target="_blank" title="新浪微博">新浪微博</a>
+          <a href="javascript:alert(/没有腾讯微博哟/)" class="qweibo" target="_blank" title="腾讯微博">腾讯微博</a>
+          <a href="javascript:alert(/墙外有什么/);window.open('http://google.com')" class="google" target="_blank" title="墙外的世界">google+</a>
+          <a href="https://github.com/phith0n" class="github" target="_blank" title="Github">github</a>
+          <a href="javascript:confirm(/mailto:root#leavesongs.com/)" class="mail" target="_blank" title="私信给我">私信给我</a>
+          <a href="/feed/" target="_blank" class="rss" title="离别歌">RSS订阅</a>
+        </div>
+        <div class="bot-line"></div>
+				<p class="copyright">
+	Copyright &copy; Powered by talkbook
+				&nbsp;&nbsp;<i>Designed and built with all the love in the world by <a href="https://www.leavesongs.com" target="_blank">Phithon</a> && deepsky </i>
+                    <a href="/template/change/">更换模板</a>
+				</p>
+			</div>
+		</div>
+	</div>
+	<!-- /copyright -->
+</div>
+<a href="#" id="go-top">Top ↑</a>
+<script src="js/jquery.appear.js"></script>
+<script src="js/config.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?ad9ab5e37c2811b9f0979e46123fc898";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<script src="js/jquery.fancybox.pack.js"></script>
+<script>
+$(document).ready(function () {
+    $(".entry a").each(function (i, e) {
+        if(e.host != 'www.leavesongs.com') {
+            e.target = '_blank';
+        }
+    });
+    $(".entry img").each(function (i, e) {
+        if(e.parentNode.tagName.toUpperCase() != 'A') {
+            $(e).wrap('<a href="'+escapeHtml(e.src)+'" class="fancybox"></a>');
+        } else {
+            $(e.parentNode).addClass('fancybox');
+        }
+    });
+    $('.fancybox').fancybox();
+})
+</script>
+
+</body>
+
+</html>
