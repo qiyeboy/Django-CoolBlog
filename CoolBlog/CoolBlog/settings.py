@@ -140,17 +140,23 @@ WSGI_APPLICATION = 'CoolBlog.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'coolblog',#数据库名称
+#         'USER':'root',#用户名
+#         'PASSWORD':'',#密码为空
+#         'HOST':'127.0.0.1',#主机
+#         'PORT':'3306'#端口
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'coolblog',#数据库名称
-        'USER':'root',#用户名
-        'PASSWORD':'',#密码为空
-        'HOST':'127.0.0.1',#主机
-        'PORT':'3306'#端口
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'coolblog.db'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
