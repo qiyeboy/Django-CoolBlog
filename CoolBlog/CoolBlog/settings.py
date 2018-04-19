@@ -39,7 +39,71 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'home',#注册home目录
+    'comments',#注册评论应用
+    'captcha',
+    'pure_pagination',
+    'haystack',
+    'ckeditor',
+    'ckeditor_uploader',
+    'xadmin',
+    'crispy_forms'
 ]
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'home.whoosh_cn_backend.WhooshEngine',
+        'PATH': os.path.join(BASE_DIR, 'whoosh_index'),
+    },
+}
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
+# CKEDITOR_CONFIGS = {
+#     'awesome_ckeditor': {
+#         'toolbar': 'Basic',
+#     },
+#     'default':{
+#         'toolbar': 'Full',
+#         'extraPlugins': ','.join(['codesnippet','uploadimage','prism','widget','lineutils',]),#
+#     },
+#
+# }
+CKEDITOR_CONFIGS = {
+    # 配置名是default时，django-ckeditor默认使用这个配置
+    'default': {
+        # 使用简体中文
+        'language':'zh-cn',
+        # 编辑器的宽高请根据你的页面自行设置
+        'width':'auto',
+        'height':'300px',
+        'image_previewText':'',
+        'tabSpaces': 4,
+        'toolbar': 'Custom',
+        # 添加按钮在这里
+        'toolbar_Custom': [
+            ['Bold', 'Italic', 'Underline', 'Format', 'RemoveFormat'],
+            ['NumberedList', 'BulletedList'],
+            ['Blockquote', 'CodeSnippet'],
+            ['Image', 'Link', 'Unlink'],
+            ['Maximize']
+        ],
+
+        # 插件
+        'extraPlugins': ','.join(['codesnippet','uploadimage','prism','widget','lineutils',]),#
+    }
+}
+
+
+
+# CKEDITOR_UPLOAD_SLUGIFY_FILENAME = False
+
+CKEDITOR_ALLOW_NONIMAGE_FILES = False
+CKEDITOR_RESTRICT_BY_USER = True
+CKEDITOR_BROWSE_SHOW_DIRS = True
+
+
+
+
+# CKEDITOR_RESTRICT_BY_DATE = True
+
+
 
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
@@ -83,7 +147,7 @@ DATABASES = {
         'USER':'root',#用户名
         'PASSWORD':'',#密码为空
         'HOST':'127.0.0.1',#主机
-        'PORT':'3308'#端口
+        'PORT':'3306'#端口
     }
 }
 
@@ -110,9 +174,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'zh-hans'# 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'#'UTC'
 
 USE_I18N = True
 
@@ -128,3 +192,13 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS=[
     os.path.join(BASE_DIR,'static'),
 ]
+
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR,'static/upload')
+
+CKEDITOR_UPLOAD_PATH = "ckeditor"
+
+CKEDITOR_IMAGE_BACKEND = 'pillow'
+

@@ -1,0 +1,74 @@
+{% extends 'home\base.html' %}
+{% load staticfiles %}
+{% block title %}文章列表 | 离别歌{%endblock%}
+
+{% block banner_bar%}
+<div class="banner-bar">
+    <div class="container">
+        <div class="col-12 columns">
+            <div class="place">
+                <a href="/">首页</a>
+                &raquo;<a href="/">{{keywords}}</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block mainbody %}
+<div class="col-11 columns" id="mainbody">
+{% for article in articles.object_list %}
+<div class="post type-post" >
+    <h2 class='loading-title' itemprop="name headline">
+      <a itemtype="url" href="/article/{{article.object.pk}}/" title="{{article.object.title}}">{{article.object.title}}</a>
+    </h2>
+    <div class="details-up">
+  <span class="author">作者: {{article.object.author}}</span>
+  <span class="category">分类: <a href="{{article.object.category.get_absolute_url}}">{{article.object.category.name}}</a></span>
+  <span class="date">时间: {{article.object.created_time}}</span>
+  <span class="comments-top" itemprop="interactionCount">评论：<a itemprop="discussionUrl" href="/PENETRATION/php-cgi-cve-2012-1823.html#reply-list">0条评论</a></span>
+  <span class="comments-top" itemprop="interactionCount">浏览：<a itemprop="discussionUrl" href="/PENETRATION/php-cgi-cve-2012-1823.html">{{article.object.views}}人看过</a></span>
+  <span class="date">标签:
+        {% for tag in article.object.tags.all %}
+        <a href="{{tag.get_absolute_url}}">{{tag.name}}</a>
+        {% endfor %}
+  </span>
+</div>
+    <div class="entry">
+        {{article.object.excerpt}}
+    </div>
+
+</div>
+
+{% empty %}
+<div class="post type-post" >
+    还没有文章发布！
+</div>
+{% endfor %}
+
+<div class="pageturn">
+<ul class="pagelist">
+ {% if articles.has_previous %}
+    <li class="long"><a href="?{{ articles.previous_page_number.querystring }}">上一页</a></li>
+{% endif %}
+ {% for page in articles.pages %}
+    {% if page %}
+        {% ifequal page articles.number %}
+            <li class="active"><a href="?{{ page.querystring }}">{{ page }}</a></li>
+        {% else %}
+            <li><a href="?{{ page.querystring }}" class="page">{{ page }}</a></li>
+        {% endifequal %}
+    {% else %}
+        <li class="none"><a href="">...</a></li>
+    {% endif %}
+{% endfor %}
+{% if articles.has_next %}
+    <li class="long"><a href="?{{ articles.next_page_number.querystring }}">下一页</a></li>
+
+{% endif %}
+
+</ul>
+</div>
+
+</div>
+{% endblock %}

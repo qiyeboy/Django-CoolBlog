@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+{% load staticfiles %}
+{% load home_tags %}
+<html class="no-js">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="keywords" content="" />
+    <meta name="description" content="phithon的小站，长期存在与分享关于网络安全与各种编程的原创文章。" />
+    <title>{% block title %}首页 | 离别歌{% endblock %}</title>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="离别歌" />
+    <link href="{% static 'home/css/base.css' %}" rel="stylesheet" type="text/css" />
+    <link href="{% static 'home/css/style.css' %}" rel="stylesheet" type="text/css" />
+
+    <link href="{% static 'home/css/prism.css' %}" rel="stylesheet" type="text/css" />
+    <script src="{% static 'ckeditor/ckeditor/plugins/prism/lib/prism/prism_patched.min.js' %}"></script>
+
+    <script src="{% static 'home/js/jquery-1.9.1.min.js' %}"></script>
+    <script src="{% static 'home/js/common_tpl.js' %}" type="text/javascript"></script>
+    <link rel="shortcut icon" href="/static/deep/images/favicon.ico" />
+    <style type="text/css">
+        .pagelist{
+            display: inline-block;
+            padding-left: 0;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+       .pagelist li{
+            display: inline;
+        }
+
+        .pagelist li a{
+            position: relative;
+            float: left;
+            padding: 6px 12px;
+            margin-left: -1px;
+            line-height: 1.4;
+            color: #428bca;
+            text-decoration: none;
+            background-color: #fff;
+            border: 1px solid #ddd;
+        }
+        .pagelist .active a{
+            background: #f5f5f5;
+        }
+
+    </style>
+</head>
+<body>
+<!--[if lt IE 8]>
+    <div class="browsehappy" role="dialog">当前网页 <strong>不支持</strong> 你正在使用的浏览器. 为了正常的访问, 请 <a href="http://browsehappy.com/">升级你的浏览器</a>.</div>
+<![endif]-->
+<div id="header">
+    <div class="container">
+        <h1 class="h1-title">
+            <a href="/">
+               <img src="{% static 'upload/images/logo.png'%}" alt="离别歌" />
+            </a>
+        </h1>
+        <div id="nav">
+        <input type="checkbox" id="button">
+        <label for="button" onclick>菜单</label>
+
+        <ul>
+
+            <li class="item ">
+                <a href="/" >首页</a>
+            </li>
+
+            <li class="item ">
+                <a href="/list/" >文章</a>
+            </li>
+
+            <li class="item ">
+                <a href="/other/tinger.html" >关于</a>
+            </li>
+
+            <li class="item ">
+                <a href="/other/friends-link.html" >友链</a>
+            </li>
+
+            <li class="item ">
+                <a href="https://github.com/phith0n" target="_blank" >项目</a>
+            </li>
+
+            <li class="item ">
+                <a href="https://www.leavesongs.com/PENETRATION/code-auditor-secret-group.html" >代码审计</a>
+            </li>
+
+        </ul>
+
+        </div>
+    </div>
+</div>
+
+
+{% block slider %}{% endblock %}
+
+
+{% block banner_bar%}{% endblock %}
+
+<div class="container">
+{% block mainbody %}{% endblock %}
+<div  class="col-5 columns" id="sidebar" role="complementary">
+
+  <div class="widget widget_search">
+    <h3>搜索</h3>
+    <form action="{% url 'home:full_search' %}" id="searchform" method="get">
+        <input type="text" id="searchkey" name="q" value="" class="searchkey" placeholder="Search..."/>
+        <button type="submit"  id="searchsubmit">Go</button>
+    </form>
+  </div>
+
+
+  <div class="widget">
+	<h3 class="widget-title">最新评论</h3>
+	<ul class="widget-list" id="recent-comment">
+
+        {% get_recent_comments as recent_comments %}
+        {% for comment in recent_comments %}
+        <li id="comment" class="clearfix">
+            <img class="avatar" src="{% static 'upload/images/d41d8cd98f00b204e9800998ecf8427e.jpg'%}" alt="%s" width="40" height="40">
+            <div class="comments-link"><cite>{{ comment.nick_name }}</cite>：
+                <a href="{{comment.article.get_absolute_url}}#comment-{{comment.pk}}">{{ comment.text }}</a></div>
+        </li>
+        {% endfor %}
+
+        <!--<li id="comment" class="clearfix">-->
+            <!--<img class="avatar" src="picture/c4267eb6d17276fa31c547ac71611e90.jpg" alt="%s" width="40" height="40">-->
+            <!--<div class="comments-link"><cite>phithon</cite>：<a href="/other/friends-link.html#comment-2699">@lucien 暂不满足要求哈</a></div>-->
+        <!--</li>-->
+
+        <!--<li id="comment" class="clearfix">-->
+            <!--<img class="avatar" src="picture/d41d8cd98f00b204e9800998ecf8427e.jpg" alt="%s" width="40" height="40">-->
+            <!--<div class="comments-link"><cite>zerokeeper</cite>：<a href="/other/friends-link.html#comment-2696">p师傅，不知是否可以换个友链？-->
+<!--地址：http://www.zerokeeper.com/</a></div>-->
+        <!--</li>-->
+
+        <!--<li id="comment" class="clearfix">-->
+            <!--<img class="avatar" src="picture/c4267eb6d17276fa31c547ac71611e90.jpg" alt="%s" width="40" height="40">-->
+            <!--<div class="comments-link"><cite>phithon</cite>：<a href="/other/friends-link.html#comment-2697">@zerokeeper 可以</a></div>-->
+        <!--</li>-->
+
+        <!--<li id="comment" class="clearfix">-->
+            <!--<img class="avatar" src="picture/d41d8cd98f00b204e9800998ecf8427e.jpg" alt="%s" width="40" height="40">-->
+            <!--<div class="comments-link"><cite>闷声发大财</cite>：<a href="/PENETRATION/fastcgi-and-php-fpm.html#comment-2695">可以很清真</a></div>-->
+        <!--</li>-->
+
+    </ul>
+  </div>
+
+  <div class="widget widget-category">
+	<h3>分类</h3>
+	<ul id="blogsort" class="widget-list">
+
+    {% get_all_category as categorys %}
+        {% for category in categorys %}
+        {% get_article_count category as count%}
+            <li>
+                <a href="{{category.get_absolute_url}}">{{ category.name }}<em>{{count}}</em></a>
+            </li>
+        {% endfor %}
+
+    <!--<li>-->
+        <!--<a href="/sort/C">C/C++<em>32</em></a>-->
+    <!--</li>-->
+
+    <!--<li>-->
+        <!--<a href="/sort/PYTHON">Python<em>18</em></a>-->
+    <!--</li>-->
+
+    <!--<li>-->
+        <!--<a href="/sort/SHARE">资源分享<em>15</em></a>-->
+    <!--</li>-->
+
+    <!--<li>-->
+        <!--<a href="/sort/HTML">web前端<em>13</em></a>-->
+    <!--</li>-->
+
+    </ul>
+  </div>
+
+  <div class="widget widget-tag">
+	<h3>随机标签</h3>
+	<div class="tag-cloud">
+
+        {% get_all_tags as tags %}
+        {% for tag in tags%}
+        <a rel="tag" href="{{tag.get_absolute_url}}">{{ tag.name}}</a>
+        {% endfor %}
+        <!--<a rel="tag" href="/tag/MFC">MFC</a>-->
+
+        <!--<a rel="tag" href="/tag/ActiveX">ActiveX</a>-->
+
+        <!--<a rel="tag" href="/tag/backtrack">backtrack</a>-->
+
+        <!--<a rel="tag" href="/tag/lnmp">lnmp</a>-->
+
+        <!--<a rel="tag" href="/tag/struts">struts</a>-->
+
+        <!--<a rel="tag" href="/tag/%E9%87%8D%E5%AE%9A%E5%90%91">重定向</a>-->
+
+        <!--<a rel="tag" href="/tag/php7">php7</a>-->
+
+        <!--<a rel="tag" href="/tag/%E4%BD%8D%E8%BF%90%E7%AE%97">位运算</a>-->
+
+        <!--<a rel="tag" href="/tag/%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%88%A0%E9%99%A4">任意文件删除</a>-->
+
+        <!--<a rel="tag" href="/tag/itoa">itoa</a>-->
+
+        <!--<a rel="tag" href="/tag/%E9%98%BB%E6%AD%A2%E8%84%9A%E6%9C%AC%E8%BF%90%E8%A1%8C">阻止脚本运行</a>-->
+
+        <!--<a rel="tag" href="/tag/%E6%A1%A5%E6%8E%A5">桥接</a>-->
+
+        <!--<a rel="tag" href="/tag/tornado">tornado</a>-->
+
+        <!--<a rel="tag" href="/tag/%E5%B9%B3%E8%A1%A1%E6%9D%83%E9%99%90">平衡权限</a>-->
+
+        <!--<a rel="tag" href="/tag/Ubuntu">Ubuntu</a>-->
+
+        <!--<a rel="tag" href="/tag/%E5%BA%93%E5%87%BD%E6%95%B0">库函数</a>-->
+
+        <!--<a rel="tag" href="/tag/ctf">ctf</a>-->
+
+        <!--<a rel="tag" href="/tag/%E5%AF%92%E5%81%87">寒假</a>-->
+
+        <!--<a rel="tag" href="/tag/%E6%89%BE%E5%9B%9E%E5%AF%86%E7%A0%81">找回密码</a>-->
+
+        <!--<a rel="tag" href="/tag/%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E">上传漏洞</a>-->
+
+        <!--<a rel="tag" href="/tag/%E5%9B%9E%E8%B0%83%E5%90%8E%E9%97%A8">回调后门</a>-->
+
+        <!--<a rel="tag" href="/tag/%E6%B5%8B%E8%AF%95">测试</a>-->
+
+        <!--<a rel="tag" href="/tag/_countof">_countof</a>-->
+
+        <!--<a rel="tag" href="/tag/%E6%8F%90%E6%9D%83%E6%BC%8F%E6%B4%9E">提权漏洞</a>-->
+
+        <!--<a rel="tag" href="/tag/sqlite">sqlite</a>-->
+
+        <!--<a rel="tag" href="/tag/brainfuck">brainfuck</a>-->
+
+        <!--<a rel="tag" href="/tag/%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86">反向代理</a>-->
+
+        <!--<a rel="tag" href="/tag/rss">rss</a>-->
+
+        <!--<a rel="tag" href="/tag/%E5%AD%A6%E4%B9%A0">学习</a>-->
+
+    </div>
+  </div>
+
+  <div class="widget widget-recent-entries">
+	<h3 class="widget-title">热门日志</h3>
+	<ul id="hotlog" class="widget-list">
+        {% get_hot_articles as articles %}
+        {% for article in articles%}
+        <li><a href="{{article.get_absolute_url}}">{{article.title}}</a></li>
+        {% endfor %}
+        <!--<li><a href="/THINK/banjia.html">博客搬家成功</a></li>-->
+
+        <!--<li><a href="/PENETRATION/vps-pentest.html">对自己VPS的一次安全检测</a></li>-->
+
+        <!--<li><a href="/C/CGIforC_1.html">C语言CGI编程入门(一)</a></li>-->
+
+        <!--<li><a href="/C/gh0st_2.html">gh0st源码分析与远控的编写(二)</a></li>-->
+
+    </ul>
+  </div>
+
+
+</div>
+</div>
+
+<div id="footer">
+	<!-- copyright -->
+	<div class="container">
+		<div class="row remove-bottom">
+			<div class="col-6 columns">
+			<h3>Little About</h3>
+			<p>Phithon 非强迫症小青年  <br>
+现居先 <br>
+爱好：种花、买书、收藏明信片 <br>
+欢迎各大组织收留 <br>
+E-mail：root@leavesongs.com </p>
+			</div>
+
+			<div class="col-10 columns">
+
+				<h3 class="mobile-hide">Follow me</h3>
+        <div id="social-links">
+          <a href="http://weibo.com/101yx" class="sweibo" target="_blank" title="新浪微博">新浪微博</a>
+          <a href="javascript:alert(/没有腾讯微博哟/)" class="qweibo" target="_blank" title="腾讯微博">腾讯微博</a>
+          <a href="javascript:alert(/墙外有什么/);window.open('http://google.com')" class="google" target="_blank" title="墙外的世界">google+</a>
+          <a href="https://github.com/phith0n" class="github" target="_blank" title="Github">github</a>
+          <a href="javascript:confirm(/mailto:root#leavesongs.com/)" class="mail" target="_blank" title="私信给我">私信给我</a>
+          <a href="/feed/" target="_blank" class="rss" title="离别歌">RSS订阅</a>
+        </div>
+        <div class="bot-line"></div>
+				<p class="copyright">
+	Copyright &copy; Powered by talkbook
+				&nbsp;&nbsp;<i>Designed and built with all the love in the world by <a href="https://www.leavesongs.com" target="_blank">Phithon</a> && deepsky </i>
+                    <a href="/template/change/">更换模板</a>
+				</p>
+			</div>
+		</div>
+	</div>
+	<!-- /copyright -->
+</div>
+<a href="#" id="go-top">Top ↑</a>
+<script src="{% static 'home/js/jquery.appear.js'%}"></script>
+<script src="{% static 'home/js/config.js'%}"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?ad9ab5e37c2811b9f0979e46123fc898";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+</body>
+
+</html>

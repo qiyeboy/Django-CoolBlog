@@ -1,44 +1,18 @@
-﻿{% extends 'home\base.html' %}
+{% extends 'home\base.html' %}
 {% load staticfiles %}
-{% block title %}首页 | 离别歌{%endblock%}
+{% block title %}文章列表 | 离别歌{%endblock%}
 
-{% block slider %}
-<div class="slider">
-  <div class="banner-overlay"></div>
-  <div class="container">
-    <div class="row">
+{% block banner_bar%}
+<div class="banner-bar">
+    <div class="container">
+        <div class="col-12 columns">
+            <div class="place">
+                <a href="/">首页</a>
+                &raquo;<a href="{{obj.get_absolute_url}}">{{obj.name}}</a>
 
-      <div class="col-10 columns">
-        <div class="hero">
-          <h2>离别歌</h2>
-          <p id="blog_info">The quieter you become,the more you are able to hear.</p>
-          <mark class="mark">Programming • Vulnerability • Bypass • Exploit</mark>
-        </div>
-        <ul class="project clearfix" id="main-word">
-           <li><h3>Programming</h3>
-              <p>一个不会编程的hacker不是好hacker，努力提高编码水平，接触最前沿的代码思想，构架自己的平台框架。</p>
-          </li>
-          <li><h3>Vulnerability</h3>
-              <p>没有漏洞就没有安全，安全建立在发现漏洞与解决漏洞之间。世上没有完美的代码，也不会有零漏洞的程序。</p>
-          </li>
-          <li><h3>Bypass</h3>
-              <p>不断地绕过，不断地突破防御机制，考验的是一个安全研究者对于漏洞原理的理解，更是猥琐的思路。</p>
-          </li>
-          <li><h3>Exploit</h3>
-              <p>发现一个漏洞，你成功了70%；写出利用代码，完成剩下的30%。行百步者半九十。</p>
-          </li>
-        </ul>
-      </div>
-      <div class="col-6 columns" id="flash">
-            <div class="panel-flash">
-              <a href="javascript:void(0)" class="stag stage3" style="display:block" ><img src="{% static 'upload/images/03.jpg'%}" alt="deep"></a>
-              <a href="javascript:void(0)" class="stag stage1" style="display:none"><img src="{% static 'upload/images/01.jpg'%}" alt="about-me"></a>
-              <a href="javascript:void(0)" class="stag stage2" style="display:none"><img src="{% static 'upload/images/02.jpg'%}" alt="code"></a>
             </div>
-      </div>
-
+        </div>
     </div>
-  </div>
 </div>
 {% endblock %}
 
@@ -66,19 +40,18 @@
     </div>
 
 </div>
+
 {% empty %}
 <div class="post type-post" >
     还没有文章发布！
-
 </div>
 {% endfor %}
 
-<div class="pagediv">
+<div class="pageturn">
 <ul class="pagelist">
  {% if articles.has_previous %}
     <li class="long"><a href="?{{ articles.previous_page_number.querystring }}">上一页</a></li>
 {% endif %}
-
  {% for page in articles.pages %}
     {% if page %}
         {% ifequal page articles.number %}
@@ -86,15 +59,13 @@
         {% else %}
             <li><a href="?{{ page.querystring }}" class="page">{{ page }}</a></li>
         {% endifequal %}
-
     {% else %}
         <li class="none"><a href="">...</a></li>
     {% endif %}
 {% endfor %}
-
-
 {% if articles.has_next %}
     <li class="long"><a href="?{{ articles.next_page_number.querystring }}">下一页</a></li>
+
 {% endif %}
 
 </ul>
