@@ -28,7 +28,10 @@ def detail(request, id):
     #     article = Article.objects.get(pk=id)
     # except Article.DoesNotExist:
     #     raise Http404
+
     article = get_object_or_404(Article, pk=id)
+    article.views += 1
+    article.save()
     commentsForm = CommentsForm()
     return render(request, 'home/article.html', context={'article': article,'commentsForm':commentsForm})
 

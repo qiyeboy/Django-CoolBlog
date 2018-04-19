@@ -27,6 +27,6 @@ class CommentView(View):
             comment.text = text
             comment.article = article
             comment.save()
-        return redirect(article.get_absolute_url()+"#comment")
+        return redirect(article.get_absolute_url()+"#comments")
 
 

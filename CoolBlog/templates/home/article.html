@@ -29,10 +29,11 @@
                 <span class="category">分类: <a href="{{article.category.get_absolute_url}}">{{article.category.name}}</a></span>
 
                 <span class="date">时间: {{article.created_time}}</span>
+                    {% get_comments_count article as comments_count %}
                 <span class="comments-top" itemprop="interactionCount">评论：<a itemprop="discussionUrl"
-                                                                             href="/PENETRATION/php-cgi-cve-2012-1823.html#reply-list">0条评论</a></span>
+                                                                             href="/article/{{article.pk}}/#comments">{{comments_count}}条评论</a></span>
                 <span class="comments-top" itemprop="interactionCount">浏览：<a itemprop="discussionUrl"
-                                                                             href="/PENETRATION/php-cgi-cve-2012-1823.html">{{article.views}}人看过</a></span>
+                                                                             href="/article/{{article.pk}}/">{{article.views}}人看过</a></span>
 
                 <span class="date">标签:
 

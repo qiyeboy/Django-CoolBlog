@@ -1,5 +1,6 @@
 {% extends 'home\base.html' %}
 {% load staticfiles %}
+{% load home_tags %}
 {% block title %}文章列表 | 离别歌{%endblock%}
 
 {% block banner_bar%}
@@ -26,8 +27,9 @@
   <span class="author">作者: {{article.object.author}}</span>
   <span class="category">分类: <a href="{{article.object.category.get_absolute_url}}">{{article.object.category.name}}</a></span>
   <span class="date">时间: {{article.object.created_time}}</span>
-  <span class="comments-top" itemprop="interactionCount">评论：<a itemprop="discussionUrl" href="/PENETRATION/php-cgi-cve-2012-1823.html#reply-list">0条评论</a></span>
-  <span class="comments-top" itemprop="interactionCount">浏览：<a itemprop="discussionUrl" href="/PENETRATION/php-cgi-cve-2012-1823.html">{{article.object.views}}人看过</a></span>
+        {% get_comments_count article.object as comments_count %}
+  <span class="comments-top" itemprop="interactionCount">评论：<a itemprop="discussionUrl" href="/article/{{article.object.pk}}/#comments">{{comments_count}}条评论</a></span>
+  <span class="comments-top" itemprop="interactionCount">浏览：<a itemprop="discussionUrl" href="/article/{{article.object.pk}}/">{{article.object.views}}人看过</a></span>
   <span class="date">标签:
         {% for tag in article.object.tags.all %}
         <a href="{{tag.get_absolute_url}}">{{tag.name}}</a>
